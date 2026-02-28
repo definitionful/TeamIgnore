@@ -1,13 +1,8 @@
--- TeamIgnoreModule_v2.lua
--- Behavior:
---  - If LocalPlayer.Team is in primary list => add primary list into ignoredTeams
---  - elseif LocalPlayer.Team is in exception list => add exception list into ignoredTeams
---  - returns which list was applied ("primary", "exception", or nil)
-
+-- TeamIgnoreModule_fixed.lua
 local TeamIgnoreModule = {}
 
--- Separate lists by purpose (same placeId)
-TeamIgnoreModule.autoIgnoreByPlace = {
+-- Lists for placeId 92328371535077
+TeamIgnoreModule.byPlace = {
     [92328371535077] = {
         primary = {
             "Mobile Task Force",
@@ -36,16 +31,6 @@ TeamIgnoreModule.autoIgnoreByPlace = {
     }
 }
 
--- Return tables: primary and exception (or empty tables)
-function TeamIgnoreModule.getListsForPlace(placeId)
-    local entry = TeamIgnoreModule.autoIgnoreByPlace[placeId]
-    if not entry then
-        return {}, {}
-    end
-    return entry.primary or {}, entry.exception or {}
-end
-
--- Utility: check membership in a list (array of strings)
 local function inList(list, name)
     if not list or not name then return false end
     for _, v in ipairs(list) do
@@ -54,8 +39,7 @@ local function inList(list, name)
     return false
 end
 
--- Merge list (array) into ignoredTeams table (sets name -> true)
-local function mergeIntoIgnored(ignoredTeams, list)
+local function merge(ignoredTeams, list)
     if type(ignoredTeams) ~= "table" then return false end
     for _, v in ipairs(list) do
         ignoredTeams[v] = true
@@ -63,47 +47,43 @@ local function mergeIntoIgnored(ignoredTeams, list)
     return true
 end
 
--- Main function:
---  - ignoredTeams : table (set-like) to update
--- Returns: "primary" if primary applied, "exception" if exception applied, or nil if nothing applied.
+-- Main: updates ignoredTeams depending on the local player's current team.
+-- Returns: "primary" or "exception" if applied, nil otherwise.
 function TeamIgnoreModule.updateIgnoredIfLocalInAuto(ignoredTeams)
     if type(ignoredTeams) ~= "table" then return nil end
 
     local Players = game:GetService("Players")
-    local localPlayer = Players.LocalPlayer
-    if not localPlayer then return nil end
+    local lp = Players.LocalPlayer
+    if not lp then return nil end
 
-    local placeId = game.PlaceId
-    local primaryList, exceptionList = TeamIgnoreModule.getListsForPlace(placeId)
+    local placeEntry = TeamIgnoreModule.byPlace[game.PlaceId]
+    if not placeEntry then return nil end
 
-    local myTeamName = localPlayer.Team and localPlayer.Team.Name
+    local myTeamName = lp.Team and lp.Team.Name
     if not myTeamName then return nil end
 
-    -- If local is in primary -> apply primary list
-    if inList(primaryList, myTeamName) then
-        mergeIntoIgnored(ignoredTeams, primaryList)
+    -- If local player is in any primary team -> apply PRIMARY only
+    if inList(placeEntry.primary, myTeamName) then
+        merge(ignoredTeams, placeEntry.primary)
         return "primary"
     end
 
-    -- Else if local is in exception -> apply exception list
-    if inList(exceptionList, myTeamName) then
-        mergeIntoIgnored(ignoredTeams, exceptionList)
+    -- Else if local player is in any exception team -> apply EXCEPTION only
+    if inList(placeEntry.exception, myTeamName) then
+        merge(ignoredTeams, placeEntry.exception)
         return "exception"
     end
 
     return nil
 end
 
--- Extra helper: force-merge specific list type for a place (no local-team check)
--- listType = "primary" or "exception"
-function TeamIgnoreModule.forceMerge(ignoredTeams, placeId, listType)
+-- Optional helper to force-apply a list (no local-team check)
+function TeamIgnoreModule.forceApply(ignoredTeams, placeId, listType)
     if type(ignoredTeams) ~= "table" then return false end
-    local entry = TeamIgnoreModule.autoIgnoreByPlace[placeId]
+    local entry = TeamIgnoreModule.byPlace[placeId]
     if not entry then return false end
     local list = (listType == "exception") and entry.exception or entry.primary
-    if not list then return false end
-    for _, v in ipairs(list) do ignoredTeams[v] = true end
-    return true
+    return merge(ignoredTeams, list)
 end
 
 return TeamIgnoreModule
