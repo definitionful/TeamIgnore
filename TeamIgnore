@@ -1,15 +1,109 @@
-return {
+-- TeamIgnoreModule.lua
+-- Return value: table with lists and helper functions.
+-- Usage (from your leo script):
+-- local TeamIgnoreModule = loadstring(game:HttpGet("https://raw.githubusercontent.com/…/TeamIgnoreModule.lua"))()
+-- TeamIgnoreModule.updateIgnoredIfLocalInAuto(ignoredTeams) -- will set ignoredTeams[...] = true if applicable
+
+local TeamIgnoreModule = {}
+
+-- Auto-ignore lists keyed by placeId.
+-- NOTE: both lists you provided were for placeId 92328371535077, so they are combined here.
+TeamIgnoreModule.autoIgnoreByPlace = {
     [92328371535077] = {
-        ["Foundation"] = {
-            "Mobile Task Force", "STF Kappa-16", "MTF Eta-10", "MTF Beta-7", 
-            "MTF Nu-7", "Dept. of Personnel Integrity", "Lambda Team", 
-            "Ethics Committee", "Medical Department", "Maintenance Crew", 
-            "MTF Epsilon-9", "Security Department", "Internal Security", 
-            "MTF Alpha-1", "Scientific Department", "MTF Epsilon-11", 
-            "Administration", "Intelligence Agency"
-        },
-        ["Hostile"] = {
-            "Class-D", "Chaos Insurgency"
-        }
+        -- primary list
+        "Mobile Task Force",
+        "STF Kappa-16",
+        "MTF Eta-10",
+        "MTF Beta-7",
+        "MTF Nu-7",
+        "Dept. of Personnel Integrity",
+        "Lambda Team",
+        "Ethics Committee",
+        "Medical Department",
+        "Maintenance Crew",
+        "MTF Epsilon-9",
+        "Security Department",
+        "Internal Security",
+        "MTF Alpha-1",
+        "Scientific Department",
+        "MTF Epsilon-11",
+        "Administration",
+        "Intelligence Agency",
+        -- additional entries you listed
+        "Class-D",
+        "Chaos Insurgency"
     }
 }
+
+-- Return the auto-ignore list for a placeId (as an array).
+function TeamIgnoreModule.getAutoIgnoreList(placeId)
+    return TeamIgnoreModule.autoIgnoreByPlace[placeId] or {}
+end
+
+-- Check whether a given teamName is in the auto-ignore list for placeId.
+function TeamIgnoreModule.isTeamAutoIgnored(placeId, teamName)
+    if not placeId or not teamName then return false end
+    local list = TeamIgnoreModule.getAutoIgnoreList(placeId)
+    for _, v in ipairs(list) do
+        if v == teamName then
+            return true
+        end
+    end
+    return false
+end
+
+-- If the local player is in any of the auto-ignore teams for the current place,
+-- add every team from that place's auto-ignore list into the provided ignoredTeams table.
+-- Parameters:
+--  ignoredTeams (table) : the table used by your leo script (e.g. ignoredTeams = {})
+-- Returns:
+--  true  -> changed ignoredTeams (local was in an auto-ignore team and merge was applied)
+--  false -> no change (local not in auto-ignore teams or invalid arguments)
+function TeamIgnoreModule.updateIgnoredIfLocalInAuto(ignoredTeams)
+    if type(ignoredTeams) ~= "table" then return false end
+
+    local Players = game:GetService("Players")
+    local localPlayer = Players.LocalPlayer
+    if not localPlayer then return false end
+
+    local placeId = game.PlaceId
+    local list = TeamIgnoreModule.getAutoIgnoreList(placeId)
+    if not list or #list == 0 then return false end
+
+    local myTeamName = localPlayer.Team and localPlayer.Team.Name
+    if not myTeamName then return false end
+
+    local amIn = false
+    for _, v in ipairs(list) do
+        if v == myTeamName then
+            amIn = true
+            break
+        end
+    end
+
+    if not amIn then
+        -- Local player not in any auto-ignore team for this place
+        return false
+    end
+
+    -- Merge all names from list into the ignoredTeams table
+    for _, v in ipairs(list) do
+        ignoredTeams[v] = true
+    end
+
+    return true
+end
+
+-- Utility: merge auto-ignore list for a specific place into ignoredTeams (no local-player check).
+-- Useful if you want to force-apply auto-ignores for a place regardless of the local player's team.
+function TeamIgnoreModule.mergePlaceIntoIgnored(ignoredTeams, placeId)
+    if type(ignoredTeams) ~= "table" then return false end
+    local list = TeamIgnoreModule.getAutoIgnoreList(placeId)
+    if not list or #list == 0 then return false end
+    for _, v in ipairs(list) do
+        ignoredTeams[v] = true
+    end
+    return true
+end
+
+return TeamIgnoreModule
