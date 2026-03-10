@@ -1,32 +1,20 @@
--- TeamIgnoreModule_fixed.lua
 local TeamIgnoreModule = {}
 
--- Lists for placeId 92328371535077
 TeamIgnoreModule.byPlace = {
+    -- Your original Place ID logic
     [92328371535077] = {
-        primary = {
-            "Mobile Task Force",
-            "STF Kappa-16",
-            "MTF Eta-10",
-            "MTF Beta-7",
-            "MTF Nu-7",
-            "Dept. of Personnel Integrity",
-            "Lambda Team",
-            "Ethics Committee",
-            "Medical Department",
-            "Maintenance Crew",
-            "MTF Epsilon-9",
-            "Security Department",
-            "Internal Security",
-            "MTF Alpha-1",
-            "Scientific Department",
-            "MTF Epsilon-11",
-            "Administration",
-            "Intelligence Agency"
-        },
-        exception = {
-            "Class-D",
-            "Chaos Insurgency"
+        groups = {
+            {"Mobile Task Force", "STF Kappa-16", "MTF Eta-10", "MTF Beta-7", "MTF Nu-7", "Dept. of Personnel Integrity", "Lambda Team", "Ethics Committee", "Medical Department", "Maintenance Crew", "MTF Epsilon-9", "Security Department", "Internal Security", "MTF Alpha-1", "Scientific Department", "MTF Epsilon-11", "Administration", "Intelligence Agency"},
+            {"Class-D", "Chaos Insurgency"}
+        }
+    },
+    -- New Place ID logic with specific groupings
+    [10192723897] = {
+        groups = {
+            {"Class-D", "Chaos Insurgency"},
+            {"Facility Guard", "Foundation Personnel", "Mobile Task Force"},
+            {"SCP", "Serpents Hand"},
+            {"Valravn Corporation"}
         }
     }
 }
@@ -48,7 +36,6 @@ local function merge(ignoredTeams, list)
 end
 
 -- Main: updates ignoredTeams depending on the local player's current team.
--- Returns: "primary" or "exception" if applied, nil otherwise.
 function TeamIgnoreModule.updateIgnoredIfLocalInAuto(ignoredTeams)
     if type(ignoredTeams) ~= "table" then return nil end
 
@@ -57,33 +44,20 @@ function TeamIgnoreModule.updateIgnoredIfLocalInAuto(ignoredTeams)
     if not lp then return nil end
 
     local placeEntry = TeamIgnoreModule.byPlace[game.PlaceId]
-    if not placeEntry then return nil end
+    if not placeEntry or not placeEntry.groups then return nil end
 
     local myTeamName = lp.Team and lp.Team.Name
     if not myTeamName then return nil end
 
-    -- If local player is in any primary team -> apply PRIMARY only
-    if inList(placeEntry.primary, myTeamName) then
-        merge(ignoredTeams, placeEntry.primary)
-        return "primary"
-    end
-
-    -- Else if local player is in any exception team -> apply EXCEPTION only
-    if inList(placeEntry.exception, myTeamName) then
-        merge(ignoredTeams, placeEntry.exception)
-        return "exception"
+    -- Iterate through defined groups for this place
+    for _, group in ipairs(placeEntry.groups) do
+        if inList(group, myTeamName) then
+            merge(ignoredTeams, group)
+            return "applied_group"
+        end
     end
 
     return nil
-end
-
--- Optional helper to force-apply a list (no local-team check)
-function TeamIgnoreModule.forceApply(ignoredTeams, placeId, listType)
-    if type(ignoredTeams) ~= "table" then return false end
-    local entry = TeamIgnoreModule.byPlace[placeId]
-    if not entry then return false end
-    local list = (listType == "exception") and entry.exception or entry.primary
-    return merge(ignoredTeams, list)
 end
 
 return TeamIgnoreModule
