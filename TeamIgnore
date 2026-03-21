@@ -16,6 +16,13 @@ TeamIgnoreModule.byPlace = {
             {"SCP", "Serpents Hand"},
             {"Valravn Corporation"}
         }
+    },
+    [113217312262185] = {
+        groups = {
+            {"Class-D", "Chaos Insurgency"},
+            {"Security Department", "Foundation Personnel", "Mobile Task Forces"},
+            {"SCP", "Serpents Hand"}
+        }
     }
 }
 
