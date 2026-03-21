@@ -1,14 +1,12 @@
 local TeamIgnoreModule = {}
 
 TeamIgnoreModule.byPlace = {
-    -- Your original Place ID logic
     [92328371535077] = {
         groups = {
             {"Mobile Task Force", "STF Kappa-16", "MTF Eta-10", "MTF Beta-7", "MTF Nu-7", "Dept. of Personnel Integrity", "Lambda Team", "Ethics Committee", "Medical Department", "Maintenance Crew", "MTF Epsilon-9", "Security Department", "Internal Security", "MTF Alpha-1", "Scientific Department", "MTF Epsilon-11", "Administration", "Intelligence Agency"},
             {"Class-D", "Chaos Insurgency"}
         }
     },
-    -- New Place ID logic with specific groupings
     [10192723897] = {
         groups = {
             {"Class-D", "Chaos Insurgency"},
