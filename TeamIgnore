@@ -1,71 +1,61 @@
 local TeamIgnoreModule = {}
 
--- Teams are grouped. If your current team (determined by spawnrole) 
--- is in a group, everyone else in that same group is automatically ignored.
+-- Teams are grouped by faction. If your current team is in a group, 
+-- everyone else in that same group is automatically ignored (friendly fire disabled).
 TeamIgnoreModule.groups = {
-    -- === ORIGINAL GROUPS ===
+    -- Group 1: Foundation Personnel (Administration, MTF, Security, Science)
     {
-        "Mobile Task Force", "STF Kappa-16", "MTF Eta-10", "MTF Beta-7", "MTF Nu-7", 
-        "Dept. of Personnel Integrity", "Lambda Team", "Ethics Committee", 
-        "Medical Department", "Maintenance Crew", "MTF Epsilon-9", 
-        "Security Department", "Internal Security", "MTF Alpha-1", 
-        "Scientific Department", "MTF Epsilon-11", "Administration", "Intelligence Agency"
+        "Administration", "Dept. of Personnel Integrity", "Ethics Committee",
+        "Facility Guard", "Foundation Personnel", "Head Researcher",
+        "Intelligence Agency", "Internal Security", "Janitor", "Lambda Team",
+        "Maintenance Crew", "Medical Department", "Mobile Task Force",
+        "Mobile Task Forces", "MTF Alpha-1", "MTF Beta-7", "MTF Cadet",
+        "MTF Commander", "MTF Epsilon-11", "MTF Epsilon-9", "MTF Eta-10",
+        "MTF Lieutenant", "MTF Medic", "MTF Nu-7", "MTF Sniper",
+        "MTF Specialist", "Researcher", "Scientific Department",
+        "Security Chief", "Security Department", "STF Kappa-16"
     },
-    {"Class-D", "Chaos Insurgency"},
-    {"Facility Guard", "Foundation Personnel"},
-    {"SCP", "Serpents Hand"},
-    {"Valravn Corporation"},
 
-    -- === NEW ADDED GROUPS ===
+    -- Group 2: Chaos Insurgency & Class-D
     {
-        "Facility Guard", "Head Researcher", "Janitor", 
-        "MTF Cadet", "MTF Commander", "MTF Lieutenant", 
-        "MTF Medic", "MTF Sniper", "MTF Specialist", 
-        "Researcher", "Security Chief"
+        "Chaos Insurgency", "CI Alpha", "CI Beta", "CI Delta", "CI Gamma",
+        "Class-D"
     },
+
+    -- Group 3: SCPs & Serpent's Hand
     {
-        "CI Alpha", "CI Beta", "CI Delta", "CI Gamma", "Class-D", 
-        "Chaos Insurgency"
+        "SCP", "Serpents Hand", "SCP-049", "SCP-049-2", "SCP-096", "SCP-106",
+        "SCP-1507", "SCP-173", "SCP-1770", "SCP-1770-J", "SCP-247-J",
+        "SCP-457", "SCP-610", "SCP-939"
     },
+
+    -- Group 4: Global Occult Coalition & Valravn Corporation
     {
-        "GOC Captain", "GOC Corporal", "GOC Private", "GOC Sapper",
-        "Global Occult Coalition"
+        "Global Occult Coalition", "GOC Captain", "GOC Corporal",
+        "GOC Private", "GOC Sapper", "Valravn Corporation"
     },
+
+    -- Group 5: Non-Combatants / Spectators
     {
-        "SCP-049", "SCP-049-2", "SCP-096", "SCP-106", "SCP-1507", 
-        "SCP-173", "SCP-1770", "SCP-1770-J", "SCP-247-J", "SCP-457", 
-        "SCP-610", "SCP-939", "SCP", "Serpents Hand"
-    },
-    {
-        "Spectator", "Lobby"
+        "Lobby", "Spectator"
     }
 }
-
-local function inList(list, name)
-    if not list or not name then return false end
-    for _, v in ipairs(list) do
-        if v == name then return true end
-    end
-    return false
-end
-
-local function merge(ignoredTeams, list)
-    if type(ignoredTeams) ~= "table" then return false end
-    for _, v in ipairs(list) do
-        ignoredTeams[v] = true
-    end
-    return true
-end
 
 -- Main: updates ignoredTeams depending on the local player's current string team.
 function TeamIgnoreModule.updateIgnoredIfLocalInAuto(ignoredTeams, myTeamName)
     if type(ignoredTeams) ~= "table" then return nil end
     if not myTeamName or myTeamName == "" then return nil end
 
-    -- Iterate through defined groups
+    -- Iterate through defined faction groups
     for _, group in ipairs(TeamIgnoreModule.groups) do
-        if inList(group, myTeamName) then
-            merge(ignoredTeams, group)
+        -- table.find is highly optimized in Roblox Luau for searching arrays
+        if table.find(group, myTeamName) then
+            
+            -- Merge the group into the ignoredTeams dictionary
+            for _, teamName in ipairs(group) do
+                ignoredTeams[teamName] = true
+            end
+            
             return "applied_group"
         end
     end
