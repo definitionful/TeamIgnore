@@ -1,26 +1,43 @@
 local TeamIgnoreModule = {}
 
-TeamIgnoreModule.byPlace = {
-    [5691346970] = {
-        groups = {
-            {"Mobile Task Force", "STF Kappa-16", "MTF Eta-10", "MTF Beta-7", "MTF Nu-7", "Dept. of Personnel Integrity", "Lambda Team", "Ethics Committee", "Medical Department", "Maintenance Crew", "MTF Epsilon-9", "Security Department", "Internal Security", "MTF Alpha-1", "Scientific Department", "MTF Epsilon-11", "Administration", "Intelligence Agency"},
-            {"Class-D", "Chaos Insurgency"}
-        }
+-- Teams are grouped. If your current team (determined by spawnrole) 
+-- is in a group, everyone else in that same group is automatically ignored.
+TeamIgnoreModule.groups = {
+    -- === ORIGINAL GROUPS ===
+    {
+        "Mobile Task Force", "STF Kappa-16", "MTF Eta-10", "MTF Beta-7", "MTF Nu-7", 
+        "Dept. of Personnel Integrity", "Lambda Team", "Ethics Committee", 
+        "Medical Department", "Maintenance Crew", "MTF Epsilon-9", 
+        "Security Department", "Internal Security", "MTF Alpha-1", 
+        "Scientific Department", "MTF Epsilon-11", "Administration", "Intelligence Agency"
     },
-    [10192723897] = {
-        groups = {
-            {"Class-D", "Chaos Insurgency"},
-            {"Facility Guard", "Foundation Personnel", "Mobile Task Force"},
-            {"SCP", "Serpents Hand"},
-            {"Valravn Corporation"}
-        }
+    {"Class-D", "Chaos Insurgency"},
+    {"Facility Guard", "Foundation Personnel"},
+    {"SCP", "Serpents Hand"},
+    {"Valravn Corporation"},
+
+    -- === NEW ADDED GROUPS ===
+    {
+        "Facility Guard", "Head Researcher", "Janitor", 
+        "MTF Cadet", "MTF Commander", "MTF Lieutenant", 
+        "MTF Medic", "MTF Sniper", "MTF Specialist", 
+        "Researcher", "Security Chief"
     },
-    [113217312262185] = {
-        groups = {
-            {"Class-D", "Chaos Insurgency"},
-            {"Security Department", "Foundation Personnel", "Mobile Task Forces"},
-            {"SCP", "Serpents Hand"}
-        }
+    {
+        "CI Alpha", "CI Beta", "CI Delta", "CI Gamma", "Class-D", 
+        "Chaos Insurgency"
+    },
+    {
+        "GOC Captain", "GOC Corporal", "GOC Private", "GOC Sapper",
+        "Global Occult Coalition"
+    },
+    {
+        "SCP-049", "SCP-049-2", "SCP-096", "SCP-106", "SCP-1507", 
+        "SCP-173", "SCP-1770", "SCP-1770-J", "SCP-247-J", "SCP-457", 
+        "SCP-610", "SCP-939", "SCP", "Serpents Hand"
+    },
+    {
+        "Spectator", "Lobby"
     }
 }
 
@@ -40,22 +57,13 @@ local function merge(ignoredTeams, list)
     return true
 end
 
--- Main: updates ignoredTeams depending on the local player's current team.
-function TeamIgnoreModule.updateIgnoredIfLocalInAuto(ignoredTeams)
+-- Main: updates ignoredTeams depending on the local player's current string team.
+function TeamIgnoreModule.updateIgnoredIfLocalInAuto(ignoredTeams, myTeamName)
     if type(ignoredTeams) ~= "table" then return nil end
+    if not myTeamName or myTeamName == "" then return nil end
 
-    local Players = game:GetService("Players")
-    local lp = Players.LocalPlayer
-    if not lp then return nil end
-
-    local placeEntry = TeamIgnoreModule.byPlace[game.PlaceId]
-    if not placeEntry or not placeEntry.groups then return nil end
-
-    local myTeamName = lp.Team and lp.Team.Name
-    if not myTeamName then return nil end
-
-    -- Iterate through defined groups for this place
-    for _, group in ipairs(placeEntry.groups) do
+    -- Iterate through defined groups
+    for _, group in ipairs(TeamIgnoreModule.groups) do
         if inList(group, myTeamName) then
             merge(ignoredTeams, group)
             return "applied_group"
