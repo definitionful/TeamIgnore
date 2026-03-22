@@ -12,14 +12,14 @@ TeamIgnoreModule.groups = {
         "Mobile Task Forces", "MTF Alpha-1", "MTF Beta-7", "MTF Cadet",
         "MTF Commander", "MTF Epsilon-11", "MTF Epsilon-9", "MTF Eta-10",
         "MTF Lieutenant", "MTF Medic", "MTF Nu-7", "MTF Sniper",
-        "MTF Specialist", "Researcher", "Scientific Department",
+        "MTF Specialist", "Researcher", "Scientist", "Scientific Department",
         "Security Chief", "Security Department", "STF Kappa-16"
     },
 
     -- Group 2: Chaos Insurgency & Class-D
     {
         "Chaos Insurgency", "CI Alpha", "CI Beta", "CI Delta", "CI Gamma",
-        "Class-D"
+        "Class-D", "Class D"
     },
 
     -- Group 3: SCPs & Serpent's Hand
